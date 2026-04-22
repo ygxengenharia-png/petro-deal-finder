@@ -10,6 +10,7 @@ import { loadOpportunities, type Opportunity } from "@/lib/history-store";
 import { isAuthenticated, logout } from "@/lib/auth";
 import { RankingItemCard } from "@/components/RankingItemCard";
 import { SaveOpportunityModal } from "@/components/SaveOpportunityModal";
+import { BulkSaveModal } from "@/components/BulkSaveModal";
 import { HistoryTab } from "@/components/HistoryTab";
 import { LoginScreen } from "@/components/LoginScreen";
 
