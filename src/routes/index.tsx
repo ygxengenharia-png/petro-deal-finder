@@ -104,6 +104,7 @@ function RankingPlay() {
       const parsed = parsePetronectCSV(text);
       setResult(parsed);
       setFileName(file.name);
+      setSelected(new Set());
       if (parsed.items.length === 0) {
         setError(
           "Nenhum item válido encontrado. Verifique se o CSV é a exportação Petronect (delimitador ;).",
