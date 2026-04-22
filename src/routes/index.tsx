@@ -139,6 +139,16 @@ function RankingPlay() {
               )}
             </TabButton>
           </nav>
+          <button
+            onClick={() => {
+              logout();
+              setAuthed(false);
+            }}
+            className="hidden sm:inline-flex text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-border"
+            title="Sair"
+          >
+            Sair
+          </button>
         </div>
       </header>
 
@@ -299,11 +309,25 @@ function TabButton({
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: "success" | "warning" | "muted";
+}) {
+  const valueColor =
+    highlight === "success"
+      ? "text-success"
+      : highlight === "warning"
+        ? "text-warning"
+        : "text-foreground";
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="text-lg font-bold mt-0.5 truncate">{value}</div>
+      <div className={`text-lg font-bold mt-0.5 truncate ${valueColor}`}>{value}</div>
     </div>
   );
 }
