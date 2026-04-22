@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  findYGX,
   parsePetronectCSV,
   readFileAsLatin1,
   type ParseResult,
 } from "@/lib/petronect-parser";
 import { loadOpportunities, type Opportunity } from "@/lib/history-store";
+import { isAuthenticated, logout } from "@/lib/auth";
 import { RankingItemCard } from "@/components/RankingItemCard";
 import { SaveOpportunityModal } from "@/components/SaveOpportunityModal";
 import { HistoryTab } from "@/components/HistoryTab";
+import { LoginScreen } from "@/components/LoginScreen";
 
 export const Route = createFileRoute("/")({
   component: RankingPlay,
@@ -27,6 +30,8 @@ export const Route = createFileRoute("/")({
 type Tab = "analyzer" | "history";
 
 function RankingPlay() {
+  const [authed, setAuthed] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [tab, setTab] = useState<Tab>("analyzer");
   const [result, setResult] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -45,10 +50,39 @@ function RankingPlay() {
   } | null>(null);
 
   useEffect(() => {
+    setAuthed(isAuthenticated());
+    setAuthChecked(true);
     setHistory(loadOpportunities());
   }, []);
 
   const refreshHistory = () => setHistory(loadOpportunities());
+
+  const stats = useMemo(() => {
+    if (!result) return null;
+    const totalBids = result.items.reduce((s, i) => s + i.bids.length, 0);
+    let ygxWins = 0;
+    let ygxParticipations = 0;
+    let ygxWinTotal = 0;
+    for (const item of result.items) {
+      const ygx = findYGX(item);
+      if (!ygx) continue;
+      ygxParticipations++;
+      if (ygx.position === 1) {
+        ygxWins++;
+        ygxWinTotal += ygx.value;
+      }
+    }
+    return {
+      items: result.items.length,
+      bids: totalBids,
+      ygxWins,
+      ygxParticipations,
+      ygxWinTotal,
+    };
+  }, [result]);
+
+  if (!authChecked) return null;
+  if (!authed) return <LoginScreen onSuccess={() => setAuthed(true)} />;
 
   const handleFile = async (file: File) => {
     setLoading(true);
@@ -75,13 +109,6 @@ function RankingPlay() {
     const file = e.dataTransfer.files?.[0];
     if (file) void handleFile(file);
   };
-
-  const stats = useMemo(() => {
-    if (!result) return null;
-    const totalBids = result.items.reduce((s, i) => s + i.bids.length, 0);
-    const totalLowest = result.items.reduce((s, i) => s + (i.bids[0]?.value ?? 0), 0);
-    return { items: result.items.length, bids: totalBids, total: totalLowest };
-  }, [result]);
 
   return (
     <main className="min-h-screen">
@@ -112,6 +139,16 @@ function RankingPlay() {
               )}
             </TabButton>
           </nav>
+          <button
+            onClick={() => {
+              logout();
+              setAuthed(false);
+            }}
+            className="hidden sm:inline-flex text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-border"
+            title="Sair"
+          >
+            Sair
+          </button>
         </div>
       </header>
 
@@ -179,15 +216,21 @@ function RankingPlay() {
 
             {result && stats && (
               <>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <StatCard label="Itens" value={String(stats.items)} />
                   <StatCard label="Lances" value={String(stats.bids)} />
                   <StatCard
-                    label="Soma menores lances"
-                    value={stats.total.toLocaleString("pt-BR", {
+                    label="YGX venceu"
+                    value={`${stats.ygxWins}/${stats.ygxParticipations}`}
+                    highlight={stats.ygxWins > 0 ? "success" : stats.ygxParticipations > 0 ? "warning" : "muted"}
+                  />
+                  <StatCard
+                    label="Soma vitórias YGX"
+                    value={stats.ygxWinTotal.toLocaleString("pt-BR", {
                       style: "currency",
                       currency: "BRL",
                     })}
+                    highlight={stats.ygxWinTotal > 0 ? "success" : "muted"}
                   />
                 </div>
 
@@ -266,11 +309,25 @@ function TabButton({
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: "success" | "warning" | "muted";
+}) {
+  const valueColor =
+    highlight === "success"
+      ? "text-success"
+      : highlight === "warning"
+        ? "text-warning"
+        : "text-foreground";
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="text-lg font-bold mt-0.5 truncate">{value}</div>
+      <div className={`text-lg font-bold mt-0.5 truncate ${valueColor}`}>{value}</div>
     </div>
   );
 }

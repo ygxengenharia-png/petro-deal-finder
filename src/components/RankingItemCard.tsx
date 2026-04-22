@@ -1,4 +1,4 @@
-import { formatBRL, type RankedItem } from "@/lib/petronect-parser";
+import { findYGX, formatBRL, isYGX, type RankedItem } from "@/lib/petronect-parser";
 
 type Props = {
   item: RankedItem;
@@ -13,6 +13,8 @@ type Props = {
 
 export function RankingItemCard({ item, onSave }: Props) {
   const lowest = item.bids[0]?.value ?? 0;
+  const ygx = findYGX(item);
+  const ygxWon = ygx?.position === 1;
 
   return (
     <div className="rounded-xl bg-card border border-border overflow-hidden shadow-sm">
@@ -25,6 +27,21 @@ export function RankingItemCard({ item, onSave }: Props) {
             {item.opportunityNumber && (
               <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-muted text-muted-foreground border border-border">
                 Opp. {item.opportunityNumber}
+              </span>
+            )}
+            {ygx ? (
+              <span
+                className={`px-2 py-0.5 rounded-md text-xs font-bold border ${
+                  ygxWon
+                    ? "bg-success/15 text-success border-success/40"
+                    : "bg-warning/15 text-warning border-warning/40"
+                }`}
+              >
+                YGX: {ygxWon ? "🏆 1º (vencedora)" : `${ygx.position}º lugar`}
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/30">
+                YGX não participou
               </span>
             )}
             <span className="text-xs text-muted-foreground">
@@ -40,7 +57,7 @@ export function RankingItemCard({ item, onSave }: Props) {
             onSave({
               title: item.description || `Item ${item.itemNumber}`,
               itemNumber: item.itemNumber,
-              supplier: item.bids[0]?.supplier ?? "",
+              supplier: ygx?.supplier ?? item.bids[0]?.supplier ?? "",
               opportunityNumber: item.opportunityNumber,
               suggestedCost: lowest,
             })
@@ -69,10 +86,13 @@ export function RankingItemCard({ item, onSave }: Props) {
                 : idx === 2
                   ? "bg-warning/10"
                   : "";
+          const isYgxRow = isYGX(bid.supplier);
           return (
             <div
               key={`${bid.supplier}-${idx}`}
-              className={`grid grid-cols-12 gap-2 px-5 py-3 items-center text-sm ${rowStyle}`}
+              className={`grid grid-cols-12 gap-2 px-5 py-3 items-center text-sm ${rowStyle} ${
+                isYgxRow ? "ring-2 ring-inset ring-primary/60" : ""
+              }`}
             >
               <div className="col-span-1 font-bold">
                 {idx === 0 ? (
@@ -82,7 +102,14 @@ export function RankingItemCard({ item, onSave }: Props) {
                 )}
               </div>
               <div className="col-span-6 min-w-0">
-                <div className="font-medium truncate">{bid.supplier}</div>
+                <div className="font-medium truncate flex items-center gap-1.5">
+                  {bid.supplier}
+                  {isYgxRow && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground">
+                      YGX
+                    </span>
+                  )}
+                </div>
                 {idx === 0 && (
                   <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-success text-success-foreground">
                     Melhor Lance
