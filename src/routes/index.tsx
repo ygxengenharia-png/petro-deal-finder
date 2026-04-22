@@ -57,6 +57,30 @@ function RankingPlay() {
 
   const refreshHistory = () => setHistory(loadOpportunities());
 
+  const stats = useMemo(() => {
+    if (!result) return null;
+    const totalBids = result.items.reduce((s, i) => s + i.bids.length, 0);
+    let ygxWins = 0;
+    let ygxParticipations = 0;
+    let ygxWinTotal = 0;
+    for (const item of result.items) {
+      const ygx = findYGX(item);
+      if (!ygx) continue;
+      ygxParticipations++;
+      if (ygx.position === 1) {
+        ygxWins++;
+        ygxWinTotal += ygx.value;
+      }
+    }
+    return {
+      items: result.items.length,
+      bids: totalBids,
+      ygxWins,
+      ygxParticipations,
+      ygxWinTotal,
+    };
+  }, [result]);
+
   if (!authChecked) return null;
   if (!authed) return <LoginScreen onSuccess={() => setAuthed(true)} />;
 
@@ -85,30 +109,6 @@ function RankingPlay() {
     const file = e.dataTransfer.files?.[0];
     if (file) void handleFile(file);
   };
-
-  const stats = useMemo(() => {
-    if (!result) return null;
-    const totalBids = result.items.reduce((s, i) => s + i.bids.length, 0);
-    let ygxWins = 0;
-    let ygxParticipations = 0;
-    let ygxWinTotal = 0;
-    for (const item of result.items) {
-      const ygx = findYGX(item);
-      if (!ygx) continue;
-      ygxParticipations++;
-      if (ygx.position === 1) {
-        ygxWins++;
-        ygxWinTotal += ygx.value;
-      }
-    }
-    return {
-      items: result.items.length,
-      bids: totalBids,
-      ygxWins,
-      ygxParticipations,
-      ygxWinTotal,
-    };
-  }, [result]);
 
   return (
     <main className="min-h-screen">
