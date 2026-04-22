@@ -7,7 +7,7 @@ type Props = {
     itemNumber: string;
     supplier: string;
     opportunityNumber?: string;
-    suggestedCost?: number;
+    suggestedSale?: number;
   }) => void;
 };
 
@@ -15,6 +15,7 @@ export function RankingItemCard({ item, onSave }: Props) {
   const lowest = item.bids[0]?.value ?? 0;
   const ygx = findYGX(item);
   const ygxWon = ygx?.position === 1;
+  const suggestedSale = ygx?.value ?? lowest;
 
   return (
     <div className="rounded-xl bg-card border border-border overflow-hidden shadow-sm">
@@ -59,7 +60,7 @@ export function RankingItemCard({ item, onSave }: Props) {
               itemNumber: item.itemNumber,
               supplier: ygx?.supplier ?? item.bids[0]?.supplier ?? "",
               opportunityNumber: item.opportunityNumber,
-              suggestedCost: lowest,
+              suggestedSale,
             })
           }
           className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"

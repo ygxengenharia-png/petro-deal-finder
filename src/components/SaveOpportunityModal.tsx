@@ -11,7 +11,7 @@ type Props = {
     itemNumber: string;
     supplier: string;
     opportunityNumber?: string;
-    suggestedCost?: number;
+    suggestedSale?: number;
   };
 };
 
@@ -23,8 +23,8 @@ export function SaveOpportunityModal({ open, onClose, onSaved, defaults }: Props
   useEffect(() => {
     if (open) {
       setOpportunityNumber(defaults.opportunityNumber ?? "");
-      setSaleValueYGX("");
-      setCostValue(defaults.suggestedCost != null ? String(defaults.suggestedCost) : "");
+      setSaleValueYGX(defaults.suggestedSale != null ? String(defaults.suggestedSale) : "");
+      setCostValue("");
     }
   }, [open, defaults]);
 

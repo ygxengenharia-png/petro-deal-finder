@@ -46,7 +46,7 @@ function RankingPlay() {
     itemNumber: string;
     supplier: string;
     opportunityNumber?: string;
-    suggestedCost?: number;
+    suggestedSale?: number;
   } | null>(null);
 
   useEffect(() => {
