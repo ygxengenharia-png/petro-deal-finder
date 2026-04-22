@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  findYGX,
   parsePetronectCSV,
   readFileAsLatin1,
   type ParseResult,
 } from "@/lib/petronect-parser";
 import { loadOpportunities, type Opportunity } from "@/lib/history-store";
+import { isAuthenticated, logout } from "@/lib/auth";
 import { RankingItemCard } from "@/components/RankingItemCard";
 import { SaveOpportunityModal } from "@/components/SaveOpportunityModal";
 import { HistoryTab } from "@/components/HistoryTab";
+import { LoginScreen } from "@/components/LoginScreen";
 
 export const Route = createFileRoute("/")({
   component: RankingPlay,
@@ -27,6 +30,8 @@ export const Route = createFileRoute("/")({
 type Tab = "analyzer" | "history";
 
 function RankingPlay() {
+  const [authed, setAuthed] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [tab, setTab] = useState<Tab>("analyzer");
   const [result, setResult] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -45,10 +50,15 @@ function RankingPlay() {
   } | null>(null);
 
   useEffect(() => {
+    setAuthed(isAuthenticated());
+    setAuthChecked(true);
     setHistory(loadOpportunities());
   }, []);
 
   const refreshHistory = () => setHistory(loadOpportunities());
+
+  if (!authChecked) return null;
+  if (!authed) return <LoginScreen onSuccess={() => setAuthed(true)} />;
 
   const handleFile = async (file: File) => {
     setLoading(true);
@@ -79,8 +89,25 @@ function RankingPlay() {
   const stats = useMemo(() => {
     if (!result) return null;
     const totalBids = result.items.reduce((s, i) => s + i.bids.length, 0);
-    const totalLowest = result.items.reduce((s, i) => s + (i.bids[0]?.value ?? 0), 0);
-    return { items: result.items.length, bids: totalBids, total: totalLowest };
+    let ygxWins = 0;
+    let ygxParticipations = 0;
+    let ygxWinTotal = 0;
+    for (const item of result.items) {
+      const ygx = findYGX(item);
+      if (!ygx) continue;
+      ygxParticipations++;
+      if (ygx.position === 1) {
+        ygxWins++;
+        ygxWinTotal += ygx.value;
+      }
+    }
+    return {
+      items: result.items.length,
+      bids: totalBids,
+      ygxWins,
+      ygxParticipations,
+      ygxWinTotal,
+    };
   }, [result]);
 
   return (
