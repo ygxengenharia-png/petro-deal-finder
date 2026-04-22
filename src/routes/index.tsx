@@ -261,20 +261,65 @@ function RankingPlay() {
                   </div>
                 )}
 
+                <div className="rounded-lg border border-border bg-card px-4 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-[73px] z-[5]">
+                  <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-primary cursor-pointer"
+                      checked={
+                        result.items.length > 0 && selected.size === result.items.length
+                      }
+                      ref={(el) => {
+                        if (el)
+                          el.indeterminate =
+                            selected.size > 0 && selected.size < result.items.length;
+                      }}
+                      onChange={(e) =>
+                        setSelected(
+                          e.target.checked
+                            ? new Set(result.items.map((i) => i.itemNumber))
+                            : new Set(),
+                        )
+                      }
+                    />
+                    Selecionar tudo
+                    <span className="text-xs text-muted-foreground font-normal">
+                      ({selected.size}/{result.items.length})
+                    </span>
+                  </label>
+                  <button
+                    disabled={selected.size === 0}
+                    onClick={() => setBulkOpen(true)}
+                    className="px-4 py-2 rounded-md text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    💾 Salvar selecionados ({selected.size})
+                  </button>
+                </div>
+
                 <div className="space-y-4">
                   {result.items.map((item) => (
-                    <RankingItemCard
-                      key={item.itemNumber}
-                      item={item}
-                      onSave={(d) => {
-                        setModalDefaults({
-                          ...d,
-                          opportunityNumber:
-                            d.opportunityNumber ?? result.detectedOpportunity,
-                        });
-                        setModalOpen(true);
-                      }}
-                    />
+                    <div key={item.itemNumber} className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        className="mt-5 w-5 h-5 accent-primary cursor-pointer shrink-0"
+                        checked={selected.has(item.itemNumber)}
+                        onChange={() => toggleSelected(item.itemNumber)}
+                        title="Selecionar para salvar em lote"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <RankingItemCard
+                          item={item}
+                          onSave={(d) => {
+                            setModalDefaults({
+                              ...d,
+                              opportunityNumber:
+                                d.opportunityNumber ?? result.detectedOpportunity,
+                            });
+                            setModalOpen(true);
+                          }}
+                        />
+                      </div>
+                    </div>
                   ))}
                 </div>
               </>
