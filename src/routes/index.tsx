@@ -50,6 +50,17 @@ function RankingPlay() {
     suggestedSale?: number;
   } | null>(null);
 
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  const toggleSelected = (itemNumber: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemNumber)) next.delete(itemNumber);
+      else next.add(itemNumber);
+      return next;
+    });
+
   useEffect(() => {
     setAuthed(isAuthenticated());
     setAuthChecked(true);
