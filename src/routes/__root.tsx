@@ -29,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "YGX Sistem" },
+      { name: "description", content: "Parses Petronect CSV files, analyzes bids, and saves opportunities with profit calculations." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "YGX Sistem" },
+      { property: "og:description", content: "Parses Petronect CSV files, analyzes bids, and saves opportunities with profit calculations." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "YGX Sistem" },
+      { name: "twitter:description", content: "Parses Petronect CSV files, analyzes bids, and saves opportunities with profit calculations." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/054fd91b-ac4e-4a56-98d1-3e5d744f6d81/id-preview-bd801441--ee83786f-283b-4dcb-a9b7-4980338346b1.lovable.app-1776865667773.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/054fd91b-ac4e-4a56-98d1-3e5d744f6d81/id-preview-bd801441--ee83786f-283b-4dcb-a9b7-4980338346b1.lovable.app-1776865667773.png" },
     ],
     links: [
       {
