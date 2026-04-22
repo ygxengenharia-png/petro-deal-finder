@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { deleteOpportunity, profitOf, type Opportunity } from "@/lib/history-store";
 import { formatBRL } from "@/lib/petronect-parser";
+import { EditOpportunityModal } from "./EditOpportunityModal";
 
 type Props = {
   opportunities: Opportunity[];
@@ -7,6 +9,8 @@ type Props = {
 };
 
 export function HistoryTab({ opportunities, onChange }: Props) {
+  const [editing, setEditing] = useState<Opportunity | null>(null);
+
   if (opportunities.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border p-12 text-center">
@@ -62,8 +66,10 @@ export function HistoryTab({ opportunities, onChange }: Props) {
                 </div>
                 <button
                   onClick={() => {
-                    deleteOpportunity(o.id);
-                    onChange();
+                    if (confirm("Excluir esta oportunidade?")) {
+                      deleteOpportunity(o.id);
+                      onChange();
+                    }
                   }}
                   className="text-xs text-muted-foreground hover:text-destructive transition-colors"
                   title="Excluir"
@@ -71,6 +77,21 @@ export function HistoryTab({ opportunities, onChange }: Props) {
                   ✕
                 </button>
               </div>
+
+              {(o.factory || o.partNumber) && (
+                <div className="flex flex-wrap gap-1.5 text-[10px]">
+                  {o.factory && (
+                    <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/30 font-semibold">
+                      🏭 {o.factory}
+                    </span>
+                  )}
+                  {o.partNumber && (
+                    <span className="px-2 py-0.5 rounded bg-muted text-foreground border border-border font-mono">
+                      P/N: {o.partNumber}
+                    </span>
+                  )}
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-md bg-muted/50 p-2">
@@ -82,6 +103,12 @@ export function HistoryTab({ opportunities, onChange }: Props) {
                   <div className="font-mono font-semibold">{formatBRL(o.costValue)}</div>
                 </div>
               </div>
+
+              {o.notes && (
+                <div className="text-xs text-muted-foreground border-l-2 border-info/40 pl-2 line-clamp-3 italic">
+                  💭 {o.notes}
+                </div>
+              )}
 
               <div className="border-t border-border pt-3 flex items-end justify-between">
                 <div>
@@ -101,13 +128,30 @@ export function HistoryTab({ opportunities, onChange }: Props) {
                 </div>
               </div>
 
-              <div className="text-[10px] text-muted-foreground">
-                {new Date(o.createdAt).toLocaleString("pt-BR")}
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[10px] text-muted-foreground">
+                  {o.updatedAt
+                    ? `Atualizado ${new Date(o.updatedAt).toLocaleString("pt-BR")}`
+                    : new Date(o.createdAt).toLocaleString("pt-BR")}
+                </div>
+                <button
+                  onClick={() => setEditing(o)}
+                  className="px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                >
+                  ✏️ Editar
+                </button>
               </div>
             </div>
           );
         })}
       </div>
+
+      <EditOpportunityModal
+        open={editing !== null}
+        opportunity={editing}
+        onClose={() => setEditing(null)}
+        onSaved={onChange}
+      />
     </div>
   );
 }
