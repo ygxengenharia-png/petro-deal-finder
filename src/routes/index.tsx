@@ -340,6 +340,21 @@ function RankingPlay() {
           defaults={modalDefaults}
         />
       )}
+
+      {result && (
+        <BulkSaveModal
+          open={bulkOpen}
+          items={result.items.filter((i) => selected.has(i.itemNumber))}
+          defaultOpportunityNumber={result.detectedOpportunity}
+          onClose={() => setBulkOpen(false)}
+          onSaved={(count) => {
+            refreshHistory();
+            setSelected(new Set());
+            setTab("history");
+            console.log(`${count} oportunidades salvas`);
+          }}
+        />
+      )}
     </main>
   );
 }
