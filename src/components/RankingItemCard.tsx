@@ -86,10 +86,13 @@ export function RankingItemCard({ item, onSave }: Props) {
                 : idx === 2
                   ? "bg-warning/10"
                   : "";
+          const isYgxRow = isYGX(bid.supplier);
           return (
             <div
               key={`${bid.supplier}-${idx}`}
-              className={`grid grid-cols-12 gap-2 px-5 py-3 items-center text-sm ${rowStyle}`}
+              className={`grid grid-cols-12 gap-2 px-5 py-3 items-center text-sm ${rowStyle} ${
+                isYgxRow ? "ring-2 ring-inset ring-primary/60" : ""
+              }`}
             >
               <div className="col-span-1 font-bold">
                 {idx === 0 ? (
@@ -99,7 +102,14 @@ export function RankingItemCard({ item, onSave }: Props) {
                 )}
               </div>
               <div className="col-span-6 min-w-0">
-                <div className="font-medium truncate">{bid.supplier}</div>
+                <div className="font-medium truncate flex items-center gap-1.5">
+                  {bid.supplier}
+                  {isYgxRow && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground">
+                      YGX
+                    </span>
+                  )}
+                </div>
                 {idx === 0 && (
                   <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-success text-success-foreground">
                     Melhor Lance
