@@ -7,7 +7,7 @@ type Props = {
     itemNumber: string;
     supplier: string;
     opportunityNumber?: string;
-    suggestedCost?: number;
+    suggestedSale?: number;
   }) => void;
 };
 
