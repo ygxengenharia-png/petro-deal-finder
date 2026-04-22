@@ -165,6 +165,20 @@ export function parsePetronectCSV(text: string): ParseResult {
   };
 }
 
+/** Returns true if a supplier name belongs to YGX. */
+export function isYGX(supplier: string): boolean {
+  if (!supplier) return false;
+  return /\bygx\b/i.test(supplier);
+}
+
+/** Finds YGX bid info inside a ranked item: position (1-indexed) and value. */
+export function findYGX(item: RankedItem): { position: number; value: number; supplier: string } | null {
+  const idx = item.bids.findIndex((b) => isYGX(b.supplier));
+  if (idx === -1) return null;
+  const bid = item.bids[idx];
+  return { position: idx + 1, value: bid.value, supplier: bid.supplier };
+}
+
 export function formatBRL(n: number): string {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
