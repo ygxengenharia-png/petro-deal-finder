@@ -206,15 +206,21 @@ function RankingPlay() {
 
             {result && stats && (
               <>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <StatCard label="Itens" value={String(stats.items)} />
                   <StatCard label="Lances" value={String(stats.bids)} />
                   <StatCard
-                    label="Soma menores lances"
-                    value={stats.total.toLocaleString("pt-BR", {
+                    label="YGX venceu"
+                    value={`${stats.ygxWins}/${stats.ygxParticipations}`}
+                    highlight={stats.ygxWins > 0 ? "success" : stats.ygxParticipations > 0 ? "warning" : "muted"}
+                  />
+                  <StatCard
+                    label="Soma vitórias YGX"
+                    value={stats.ygxWinTotal.toLocaleString("pt-BR", {
                       style: "currency",
                       currency: "BRL",
                     })}
+                    highlight={stats.ygxWinTotal > 0 ? "success" : "muted"}
                   />
                 </div>
 
