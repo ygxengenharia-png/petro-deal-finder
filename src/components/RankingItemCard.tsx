@@ -1,4 +1,4 @@
-import { formatBRL, type RankedItem } from "@/lib/petronect-parser";
+import { findYGX, formatBRL, isYGX, type RankedItem } from "@/lib/petronect-parser";
 
 type Props = {
   item: RankedItem;
