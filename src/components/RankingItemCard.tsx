@@ -15,6 +15,7 @@ export function RankingItemCard({ item, onSave }: Props) {
   const lowest = item.bids[0]?.value ?? 0;
   const ygx = findYGX(item);
   const ygxWon = ygx?.position === 1;
+  const suggestedSale = ygx?.value ?? lowest;
 
   return (
     <div className="rounded-xl bg-card border border-border overflow-hidden shadow-sm">
