@@ -1,26 +1,276 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  parsePetronectCSV,
+  readFileAsLatin1,
+  type ParseResult,
+} from "@/lib/petronect-parser";
+import { loadOpportunities, type Opportunity } from "@/lib/history-store";
+import { RankingItemCard } from "@/components/RankingItemCard";
+import { SaveOpportunityModal } from "@/components/SaveOpportunityModal";
+import { HistoryTab } from "@/components/HistoryTab";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: RankingPlay,
+  head: () => ({
+    meta: [
+      { title: "RankingPlay — Análise de Lances Petronect" },
+      {
+        name: "description",
+        content:
+          "Analise rankings de fornecedores Petronect e salve oportunidades com cálculo automático de lucro.",
+      },
+    ],
+  }),
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+type Tab = "analyzer" | "history";
+
+function RankingPlay() {
+  const [tab, setTab] = useState<Tab>("analyzer");
+  const [result, setResult] = useState<ParseResult | null>(null);
+  const [fileName, setFileName] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<Opportunity[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalDefaults, setModalDefaults] = useState<{
+    title: string;
+    itemNumber: string;
+    supplier: string;
+    opportunityNumber?: string;
+    suggestedCost?: number;
+  } | null>(null);
+
+  useEffect(() => {
+    setHistory(loadOpportunities());
+  }, []);
+
+  const refreshHistory = () => setHistory(loadOpportunities());
+
+  const handleFile = async (file: File) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const text = await readFileAsLatin1(file);
+      const parsed = parsePetronectCSV(text);
+      setResult(parsed);
+      setFileName(file.name);
+      if (parsed.items.length === 0) {
+        setError(
+          "Nenhum item válido encontrado. Verifique se o CSV é a exportação Petronect (delimitador ;).",
+        );
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao ler arquivo.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) void handleFile(file);
+  };
+
+  const stats = useMemo(() => {
+    if (!result) return null;
+    const totalBids = result.items.reduce((s, i) => s + i.bids.length, 0);
+    const totalLowest = result.items.reduce((s, i) => s + (i.bids[0]?.value ?? 0), 0);
+    return { items: result.items.length, bids: totalBids, total: totalLowest };
+  }, [result]);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="min-h-screen">
+      {/* Header */}
+      <header className="border-b border-border bg-card/40 backdrop-blur sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-black text-lg">
+              R
+            </div>
+            <div>
+              <h1 className="text-lg font-bold leading-none">RankingPlay</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Análise de lances · Petronect
+              </p>
+            </div>
+          </div>
+          <nav className="flex gap-1 p-1 rounded-lg bg-muted">
+            <TabButton active={tab === "analyzer"} onClick={() => setTab("analyzer")}>
+              Analisador
+            </TabButton>
+            <TabButton active={tab === "history"} onClick={() => setTab("history")}>
+              Histórico
+              {history.length > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-info text-info-foreground text-[10px] font-bold">
+                  {history.length}
+                </span>
+              )}
+            </TabButton>
+          </nav>
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {tab === "analyzer" && (
+          <>
+            {/* Upload */}
+            <section
+              onDrop={onDrop}
+              onDragOver={(e) => e.preventDefault()}
+              className="rounded-xl border-2 border-dashed border-border bg-card/50 p-6 sm:p-8 text-center hover:border-info/60 transition-colors"
+            >
+              <div className="text-4xl mb-3">📊</div>
+              <h2 className="text-base font-semibold">Importar exportação Petronect</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Arraste o CSV aqui ou selecione o arquivo (delimitador <code>;</code>, ISO-8859-1).
+              </p>
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => inputRef.current?.click()}
+                  className="px-4 py-2 rounded-md bg-info text-info-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  Selecionar arquivo
+                </button>
+                {result && (
+                  <button
+                    onClick={() => {
+                      setResult(null);
+                      setFileName("");
+                      setError(null);
+                    }}
+                    className="px-4 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted transition-colors"
+                  >
+                    Limpar
+                  </button>
+                )}
+              </div>
+              <input
+                ref={inputRef}
+                type="file"
+                accept=".csv,text/csv"
+                hidden
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void handleFile(f);
+                  e.target.value = "";
+                }}
+              />
+              {fileName && (
+                <p className="text-xs text-muted-foreground mt-3">
+                  📄 {fileName}
+                </p>
+              )}
+            </section>
+
+            {loading && (
+              <div className="text-center text-sm text-muted-foreground">Processando…</div>
+            )}
+
+            {error && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 text-destructive px-4 py-3 text-sm">
+                {error}
+              </div>
+            )}
+
+            {result && stats && (
+              <>
+                <div className="grid grid-cols-3 gap-3">
+                  <StatCard label="Itens" value={String(stats.items)} />
+                  <StatCard label="Lances" value={String(stats.bids)} />
+                  <StatCard
+                    label="Soma menores lances"
+                    value={stats.total.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  />
+                </div>
+
+                {result.detectedOpportunity && (
+                  <div className="rounded-md bg-info/10 border border-info/30 px-3 py-2 text-xs text-info">
+                    Nº de oportunidade detectado: <strong>{result.detectedOpportunity}</strong>
+                  </div>
+                )}
+
+                {result.warnings.length > 0 && (
+                  <div className="rounded-md bg-warning/10 border border-warning/30 px-3 py-2 text-xs text-warning">
+                    {result.warnings.map((w, i) => (
+                      <div key={i}>⚠️ {w}</div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {result.items.map((item) => (
+                    <RankingItemCard
+                      key={item.itemNumber}
+                      item={item}
+                      onSave={(d) => {
+                        setModalDefaults({
+                          ...d,
+                          opportunityNumber:
+                            d.opportunityNumber ?? result.detectedOpportunity,
+                        });
+                        setModalOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {tab === "history" && (
+          <HistoryTab opportunities={history} onChange={refreshHistory} />
+        )}
+      </div>
+
+      {modalDefaults && (
+        <SaveOpportunityModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onSaved={refreshHistory}
+          defaults={modalDefaults}
+        />
+      )}
+    </main>
   );
 }
 
-function Index() {
-  return <PlaceholderIndex />;
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+        active
+          ? "bg-card text-foreground shadow-sm"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-lg font-bold mt-0.5 truncate">{value}</div>
+    </div>
+  );
 }
