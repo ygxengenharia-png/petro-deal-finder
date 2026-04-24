@@ -48,8 +48,6 @@ export function BulkSaveModal({
   );
   const totalProfit = totalSale - totalCost;
 
-  const [saving, setSaving] = useState(false);
-
   const handleSave = async () => {
     if (!opportunityNumber.trim() || rows.length === 0) return;
     const opp = opportunityNumber.trim();
