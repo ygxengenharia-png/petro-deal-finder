@@ -171,10 +171,10 @@ export function BulkSaveModal({
           </button>
           <button
             onClick={handleSave}
-            disabled={!opportunityNumber.trim() || rows.length === 0}
+            disabled={!opportunityNumber.trim() || rows.length === 0 || saving}
             className="px-4 py-2 rounded-md text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Salvar {rows.length} na YGX
+            {saving ? "Salvando…" : `Salvar ${rows.length} na YGX`}
           </button>
         </div>
       </div>
