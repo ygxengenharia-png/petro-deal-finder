@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { formatBRL } from "@/lib/petronect-parser";
-import { saveOpportunity, type Opportunity } from "@/lib/history-store";
+import { saveOpportunity } from "@/lib/history-store";
 
 type Props = {
   open: boolean;
@@ -35,19 +35,16 @@ export function SaveOpportunityModal({ open, onClose, onSaved, defaults }: Props
   const profit = sale - cost;
   const margin = sale > 0 ? (profit / sale) * 100 : 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!opportunityNumber.trim()) return;
-    const op: Opportunity = {
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
+    await saveOpportunity({
       title: defaults.title,
       itemNumber: defaults.itemNumber,
       opportunityNumber: opportunityNumber.trim(),
       supplier: defaults.supplier,
       saleValueYGX: sale,
       costValue: cost,
-    };
-    saveOpportunity(op);
+    });
     onSaved();
     onClose();
   };

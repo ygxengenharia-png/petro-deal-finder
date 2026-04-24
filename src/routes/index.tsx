@@ -64,10 +64,13 @@ function RankingPlay() {
   useEffect(() => {
     setAuthed(isAuthenticated());
     setAuthChecked(true);
-    setHistory(loadOpportunities());
+    void refreshHistory();
   }, []);
 
-  const refreshHistory = () => setHistory(loadOpportunities());
+  const refreshHistory = async () => {
+    const list = await loadOpportunities();
+    setHistory(list);
+  };
 
   const stats = useMemo(() => {
     if (!result) return null;

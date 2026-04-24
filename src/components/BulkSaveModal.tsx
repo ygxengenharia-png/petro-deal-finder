@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { findYGX, formatBRL, type RankedItem } from "@/lib/petronect-parser";
-import { saveOpportunity, type Opportunity } from "@/lib/history-store";
+import { saveOpportunity } from "@/lib/history-store";
 
 type Props = {
   open: boolean;
@@ -19,6 +19,7 @@ export function BulkSaveModal({
 }: Props) {
   const [opportunityNumber, setOpportunityNumber] = useState("");
   const [costs, setCosts] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -47,26 +48,30 @@ export function BulkSaveModal({
   );
   const totalProfit = totalSale - totalCost;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!opportunityNumber.trim() || rows.length === 0) return;
     const opp = opportunityNumber.trim();
-    const now = Date.now();
-    rows.forEach((r) => {
-      const cost = Number((costs[r.item.itemNumber] ?? "").replace(",", ".")) || 0;
-      const o: Opportunity = {
-        id: crypto.randomUUID(),
-        createdAt: now,
-        title: r.item.description || `Item ${r.item.itemNumber}`,
-        itemNumber: r.item.itemNumber,
-        opportunityNumber: opp,
-        supplier: r.supplier,
-        saleValueYGX: r.sale,
-        costValue: cost,
-      };
-      saveOpportunity(o);
-    });
-    onSaved(rows.length);
-    onClose();
+    setSaving(true);
+    try {
+      await Promise.all(
+        rows.map((r) => {
+          const cost =
+            Number((costs[r.item.itemNumber] ?? "").replace(",", ".")) || 0;
+          return saveOpportunity({
+            title: r.item.description || `Item ${r.item.itemNumber}`,
+            itemNumber: r.item.itemNumber,
+            opportunityNumber: opp,
+            supplier: r.supplier,
+            saleValueYGX: r.sale,
+            costValue: cost,
+          });
+        }),
+      );
+      onSaved(rows.length);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -166,10 +171,10 @@ export function BulkSaveModal({
           </button>
           <button
             onClick={handleSave}
-            disabled={!opportunityNumber.trim() || rows.length === 0}
+            disabled={!opportunityNumber.trim() || rows.length === 0 || saving}
             className="px-4 py-2 rounded-md text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Salvar {rows.length} na YGX
+            {saving ? "Salvando…" : `Salvar ${rows.length} na YGX`}
           </button>
         </div>
       </div>

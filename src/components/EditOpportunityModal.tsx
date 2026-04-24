@@ -41,9 +41,9 @@ export function EditOpportunityModal({ open, opportunity, onClose, onSaved }: Pr
   const profit = sale - cost;
   const margin = sale > 0 ? (profit / sale) * 100 : 0;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!opportunityNumber.trim()) return;
-    updateOpportunity(opportunity.id, {
+    await updateOpportunity(opportunity.id, {
       opportunityNumber: opportunityNumber.trim(),
       title: title.trim() || opportunity.title,
       supplier: supplier.trim(),

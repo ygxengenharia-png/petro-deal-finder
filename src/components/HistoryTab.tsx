@@ -65,14 +65,15 @@ export function HistoryTab({ opportunities, onChange }: Props) {
                   <p className="text-xs text-muted-foreground mt-1 truncate">{o.supplier}</p>
                 </div>
                 <button
-                  onClick={() => {
-                    if (confirm("Excluir esta oportunidade?")) {
-                      deleteOpportunity(o.id);
+                  onClick={async () => {
+                    if (confirm(`Excluir oportunidade "${o.title}"?`)) {
+                      await deleteOpportunity(o.id);
                       onChange();
                     }
                   }}
-                  className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors shrink-0"
                   title="Excluir"
+                  aria-label="Excluir oportunidade"
                 >
                   ✕
                 </button>
@@ -134,12 +135,26 @@ export function HistoryTab({ opportunities, onChange }: Props) {
                     ? `Atualizado ${new Date(o.updatedAt).toLocaleString("pt-BR")}`
                     : new Date(o.createdAt).toLocaleString("pt-BR")}
                 </div>
-                <button
-                  onClick={() => setEditing(o)}
-                  className="px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
-                >
-                  ✏️ Editar
-                </button>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={async () => {
+                      if (confirm(`Excluir oportunidade "${o.title}"?`)) {
+                        await deleteOpportunity(o.id);
+                        onChange();
+                      }
+                    }}
+                    className="px-2.5 py-1.5 rounded-md text-xs font-semibold border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
+                    title="Excluir oportunidade"
+                  >
+                    🗑️
+                  </button>
+                  <button
+                    onClick={() => setEditing(o)}
+                    className="px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                  >
+                    ✏️ Editar
+                  </button>
+                </div>
               </div>
             </div>
           );
