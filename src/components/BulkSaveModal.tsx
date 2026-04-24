@@ -19,7 +19,7 @@ export function BulkSaveModal({
 }: Props) {
   const [opportunityNumber, setOpportunityNumber] = useState("");
   const [costs, setCosts] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState<boolean>(false);
 
   useEffect(() => {
     if (open) {
