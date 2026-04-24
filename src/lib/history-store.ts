@@ -89,7 +89,7 @@ export async function saveOpportunity(o: NewOpportunity): Promise<Opportunity | 
 }
 
 export async function updateOpportunity(id: string, patch: Partial<Opportunity>) {
-  const payload: Record<string, unknown> = {};
+  const payload: Partial<Row> = {};
   if (patch.title !== undefined) payload.title = patch.title;
   if (patch.itemNumber !== undefined) payload.item_number = patch.itemNumber;
   if (patch.opportunityNumber !== undefined) payload.opportunity_number = patch.opportunityNumber;
@@ -101,7 +101,10 @@ export async function updateOpportunity(id: string, patch: Partial<Opportunity>)
   if (patch.factory !== undefined) payload.factory = patch.factory || null;
   if (patch.partNumber !== undefined) payload.part_number = patch.partNumber || null;
 
-  const { error } = await supabase.from("opportunities").update(payload).eq("id", id);
+  const { error } = await supabase
+    .from("opportunities")
+    .update(payload as never)
+    .eq("id", id);
   if (error) console.error("updateOpportunity", error);
 }
 
