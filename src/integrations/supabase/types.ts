@@ -14,7 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      opportunities: {
+        Row: {
+          cost_value: number
+          created_at: string
+          description: string | null
+          factory: string | null
+          id: string
+          item_number: string
+          notes: string | null
+          opportunity_number: string
+          part_number: string | null
+          sale_value_ygx: number
+          supplier: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cost_value?: number
+          created_at?: string
+          description?: string | null
+          factory?: string | null
+          id?: string
+          item_number: string
+          notes?: string | null
+          opportunity_number: string
+          part_number?: string | null
+          sale_value_ygx?: number
+          supplier?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cost_value?: number
+          created_at?: string
+          description?: string | null
+          factory?: string | null
+          id?: string
+          item_number?: string
+          notes?: string | null
+          opportunity_number?: string
+          part_number?: string | null
+          sale_value_ygx?: number
+          supplier?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
