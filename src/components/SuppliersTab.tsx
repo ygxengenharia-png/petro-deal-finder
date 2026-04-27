@@ -7,7 +7,18 @@ import {
   updateSupplier,
   uploadSupplierFile,
   type Supplier,
+  type SupplierFile,
+  type SupplierFileCategory,
 } from "@/lib/suppliers-store";
+
+const CATEGORY_META: Record<
+  SupplierFileCategory,
+  { label: string; icon: string; addLabel: string }
+> = {
+  certificate: { label: "Certificados", icon: "🏅", addLabel: "+ Certificado" },
+  catalog: { label: "Catálogos", icon: "📕", addLabel: "+ Catálogo" },
+  document: { label: "Outros documentos", icon: "📄", addLabel: "+ PDF" },
+};
 
 export function SuppliersTab() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -31,7 +42,7 @@ export function SuppliersTab() {
         <div>
           <h2 className="text-lg font-bold">Fornecedores</h2>
           <p className="text-xs text-muted-foreground">
-            Cadastre fábricas e fornecedores, com logotipo, descrição e PDFs anexos.
+            Cadastre fábricas com país, descrição, logotipo, certificados e catálogos.
           </p>
         </div>
         <button
@@ -89,6 +100,90 @@ export function SuppliersTab() {
   );
 }
 
+function FileSection({
+  supplierId,
+  category,
+  files,
+  onChanged,
+}: {
+  supplierId: string;
+  category: SupplierFileCategory;
+  files: SupplierFile[];
+  onChanged: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const meta = CATEGORY_META[category];
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    await uploadSupplierFile(supplierId, file, category);
+    setUploading(false);
+    onChanged();
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          {meta.icon} {meta.label} ({files.length})
+        </span>
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="text-[11px] text-primary hover:underline disabled:opacity-50"
+        >
+          {uploading ? "Enviando…" : meta.addLabel}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="application/pdf,.pdf"
+          hidden
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleUpload(f);
+            e.target.value = "";
+          }}
+        />
+      </div>
+      <ul className="space-y-1">
+        {files.map((f) => (
+          <li
+            key={f.id}
+            className="flex items-center justify-between gap-2 text-xs rounded bg-muted/40 px-2 py-1"
+          >
+            <a
+              href={f.publicUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="truncate text-info hover:underline flex-1 min-w-0"
+              title={f.fileName}
+            >
+              📄 {f.fileName}
+            </a>
+            <button
+              onClick={async () => {
+                if (confirm(`Excluir ${f.fileName}?`)) {
+                  await deleteSupplierFile(f);
+                  onChanged();
+                }
+              }}
+              className="text-muted-foreground hover:text-destructive shrink-0"
+              title="Excluir"
+            >
+              ✕
+            </button>
+          </li>
+        ))}
+        {files.length === 0 && (
+          <li className="text-[11px] text-muted-foreground italic px-1">Nenhum.</li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
 function SupplierCard({
   supplier,
   onEdit,
@@ -98,15 +193,10 @@ function SupplierCard({
   onEdit: () => void;
   onChanged: () => void;
 }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    await uploadSupplierFile(supplier.id, file);
-    setUploading(false);
-    onChanged();
-  };
+  const allFiles = supplier.files ?? [];
+  const certificates = allFiles.filter((f) => f.category === "certificate");
+  const catalogs = allFiles.filter((f) => f.category === "catalog");
+  const documents = allFiles.filter((f) => f.category === "document");
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
@@ -124,6 +214,11 @@ function SupplierCard({
         )}
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-sm truncate">{supplier.name}</h3>
+          {supplier.country && (
+            <div className="text-[11px] text-muted-foreground mt-0.5">
+              📍 {supplier.country}
+            </div>
+          )}
           {supplier.description && (
             <p className="text-xs text-muted-foreground line-clamp-3 mt-1">
               {supplier.description}
@@ -132,71 +227,35 @@ function SupplierCard({
         </div>
       </div>
 
-      <div className="border-t border-border pt-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            📎 Arquivos ({supplier.files?.length ?? 0})
-          </span>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="text-xs text-primary hover:underline disabled:opacity-50"
-          >
-            {uploading ? "Enviando…" : "+ PDF"}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf,.pdf"
-            hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void handleUpload(f);
-              e.target.value = "";
-            }}
-          />
-        </div>
-        <ul className="space-y-1 max-h-32 overflow-auto">
-          {(supplier.files ?? []).map((f) => (
-            <li
-              key={f.id}
-              className="flex items-center justify-between gap-2 text-xs rounded bg-muted/40 px-2 py-1"
-            >
-              <a
-                href={f.publicUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="truncate text-info hover:underline flex-1 min-w-0"
-                title={f.fileName}
-              >
-                📄 {f.fileName}
-              </a>
-              <button
-                onClick={async () => {
-                  if (confirm(`Excluir ${f.fileName}?`)) {
-                    await deleteSupplierFile(f);
-                    onChanged();
-                  }
-                }}
-                className="text-muted-foreground hover:text-destructive shrink-0"
-                title="Excluir"
-              >
-                ✕
-              </button>
-            </li>
-          ))}
-          {(!supplier.files || supplier.files.length === 0) && (
-            <li className="text-[11px] text-muted-foreground italic px-1">
-              Nenhum PDF anexado.
-            </li>
-          )}
-        </ul>
+      <div className="border-t border-border pt-3 space-y-3">
+        <FileSection
+          supplierId={supplier.id}
+          category="certificate"
+          files={certificates}
+          onChanged={onChanged}
+        />
+        <FileSection
+          supplierId={supplier.id}
+          category="catalog"
+          files={catalogs}
+          onChanged={onChanged}
+        />
+        <FileSection
+          supplierId={supplier.id}
+          category="document"
+          files={documents}
+          onChanged={onChanged}
+        />
       </div>
 
       <div className="flex gap-2 justify-end">
         <button
           onClick={async () => {
-            if (confirm(`Excluir fornecedor "${supplier.name}"? Os arquivos também serão removidos.`)) {
+            if (
+              confirm(
+                `Excluir fornecedor "${supplier.name}"? Os arquivos também serão removidos.`,
+              )
+            ) {
               await deleteSupplier(supplier.id);
               onChanged();
             }
@@ -226,6 +285,7 @@ function SupplierFormModal({
   onSaved: () => void;
 }) {
   const [name, setName] = useState(supplier?.name ?? "");
+  const [country, setCountry] = useState(supplier?.country ?? "");
   const [description, setDescription] = useState(supplier?.description ?? "");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [clearLogo, setClearLogo] = useState(false);
@@ -238,6 +298,7 @@ function SupplierFormModal({
       await updateSupplier(supplier.id, {
         name: name.trim(),
         description: description.trim(),
+        country: country.trim(),
         logoFile,
         clearLogo: clearLogo && !logoFile,
       });
@@ -245,6 +306,7 @@ function SupplierFormModal({
       await createSupplier({
         name: name.trim(),
         description: description.trim(),
+        country: country.trim(),
         logoFile,
       });
     }
@@ -258,7 +320,7 @@ function SupplierFormModal({
       onClick={onClose}
     >
       <div
-        className="bg-card border border-border rounded-xl p-5 w-full max-w-md shadow-xl space-y-4"
+        className="bg-card border border-border rounded-xl p-5 w-full max-w-md shadow-xl space-y-4 max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-bold">
@@ -271,6 +333,16 @@ function SupplierFormModal({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ex.: Fábrica Aço Brasil"
+            className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold">País / Local</label>
+          <input
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            placeholder="Ex.: Brasil, China, Alemanha…"
             className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
           />
         </div>
@@ -290,7 +362,11 @@ function SupplierFormModal({
           <label className="text-xs font-semibold">Logotipo (opcional)</label>
           {supplier?.logoUrl && !logoFile && !clearLogo && (
             <div className="flex items-center gap-2 mb-1">
-              <img src={supplier.logoUrl} alt="" className="w-10 h-10 rounded object-cover border border-border" />
+              <img
+                src={supplier.logoUrl}
+                alt=""
+                className="w-10 h-10 rounded object-cover border border-border"
+              />
               <button
                 type="button"
                 onClick={() => setClearLogo(true)}
@@ -310,6 +386,10 @@ function SupplierFormModal({
             <p className="text-[11px] text-muted-foreground">Selecionado: {logoFile.name}</p>
           )}
         </div>
+
+        <p className="text-[11px] text-muted-foreground">
+          💡 Após salvar, anexe certificados e catálogos diretamente no card do fornecedor.
+        </p>
 
         <div className="flex justify-end gap-2 pt-2">
           <button
