@@ -1,11 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export type SupplierFileCategory = "certificate" | "catalog" | "document";
+
 export type SupplierFile = {
   id: string;
   supplierId: string;
   fileName: string;
   filePath: string;
   fileSize: number | null;
+  category: SupplierFileCategory;
   createdAt: number;
   publicUrl: string;
 };
@@ -14,6 +17,7 @@ export type Supplier = {
   id: string;
   name: string;
   description?: string;
+  country?: string;
   logoUrl?: string;
   createdAt: number;
   updatedAt: number;
