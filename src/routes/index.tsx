@@ -13,6 +13,7 @@ import { SaveOpportunityModal } from "@/components/SaveOpportunityModal";
 import { BulkSaveModal } from "@/components/BulkSaveModal";
 import { HistoryTab } from "@/components/HistoryTab";
 import { LoginScreen } from "@/components/LoginScreen";
+import { SuppliersTab } from "@/components/SuppliersTab";
 
 export const Route = createFileRoute("/")({
   component: RankingPlay,
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Tab = "analyzer" | "history";
+type Tab = "analyzer" | "history" | "suppliers";
 
 function RankingPlay() {
   const [authed, setAuthed] = useState(false);
@@ -153,6 +154,9 @@ function RankingPlay() {
                   {history.length}
                 </span>
               )}
+            </TabButton>
+            <TabButton active={tab === "suppliers"} onClick={() => setTab("suppliers")}>
+              Fornecedores
             </TabButton>
           </nav>
           <button
@@ -333,6 +337,8 @@ function RankingPlay() {
         {tab === "history" && (
           <HistoryTab opportunities={history} onChange={refreshHistory} />
         )}
+
+        {tab === "suppliers" && <SuppliersTab />}
       </div>
 
       {modalDefaults && (
