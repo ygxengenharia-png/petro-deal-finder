@@ -24,13 +24,15 @@ export function HistoryTab({ opportunities, onChange }: Props) {
   }
 
   const totalProfit = opportunities.reduce((s, o) => s + profitOf(o).profit, 0);
+  const totalInvestment = opportunities.reduce((s, o) => s + (o.costValue || 0), 0);
+  const totalRevenue = opportunities.reduce((s, o) => s + (o.saleValueYGX || 0), 0);
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border bg-card p-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="rounded-xl border border-border bg-card p-4 grid gap-3 sm:grid-cols-3">
         <div>
-          <div className="text-xs uppercase text-muted-foreground tracking-wide">
-            Total acumulado
+          <div className="text-[10px] uppercase text-muted-foreground tracking-wide">
+            Total acumulado (lucro)
           </div>
           <div
             className={`text-2xl font-bold ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}
@@ -38,8 +40,21 @@ export function HistoryTab({ opportunities, onChange }: Props) {
             {formatBRL(totalProfit)}
           </div>
         </div>
-        <div className="text-sm text-muted-foreground">
-          {opportunities.length} {opportunities.length === 1 ? "oportunidade" : "oportunidades"}
+        <div>
+          <div className="text-[10px] uppercase text-muted-foreground tracking-wide">
+            Valor de investimento
+          </div>
+          <div className="text-2xl font-bold text-warning">{formatBRL(totalInvestment)}</div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">Soma dos custos</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase text-muted-foreground tracking-wide">
+            Receita YGX
+          </div>
+          <div className="text-2xl font-bold text-info">{formatBRL(totalRevenue)}</div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">
+            {opportunities.length} {opportunities.length === 1 ? "oportunidade" : "oportunidades"}
+          </div>
         </div>
       </div>
 
