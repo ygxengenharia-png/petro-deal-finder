@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Tab = "analyzer" | "history";
+type Tab = "analyzer" | "history" | "suppliers";
 
 function RankingPlay() {
   const [authed, setAuthed] = useState(false);
