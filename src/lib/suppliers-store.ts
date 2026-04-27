@@ -55,6 +55,7 @@ export async function loadSuppliers(): Promise<Supplier[]> {
       fileName: f.file_name,
       filePath: f.file_path,
       fileSize: f.file_size as number | null,
+      category: ((f as { category?: string }).category as SupplierFileCategory) ?? "document",
       createdAt: new Date(f.created_at).getTime(),
       publicUrl: publicUrl(FILES_BUCKET, f.file_path),
     });
@@ -65,6 +66,7 @@ export async function loadSuppliers(): Promise<Supplier[]> {
     id: s.id,
     name: s.name,
     description: s.description ?? undefined,
+    country: (s as { country?: string | null }).country ?? undefined,
     logoUrl: s.logo_url ?? undefined,
     createdAt: new Date(s.created_at).getTime(),
     updatedAt: new Date(s.updated_at).getTime(),
@@ -75,6 +77,7 @@ export async function loadSuppliers(): Promise<Supplier[]> {
 export async function createSupplier(input: {
   name: string;
   description?: string;
+  country?: string;
   logoFile?: File | null;
 }): Promise<Supplier | null> {
   let logo_url: string | null = null;
@@ -93,7 +96,12 @@ export async function createSupplier(input: {
 
   const { data, error } = await supabase
     .from("suppliers")
-    .insert({ name: input.name, description: input.description ?? null, logo_url })
+    .insert({
+      name: input.name,
+      description: input.description ?? null,
+      country: input.country ?? null,
+      logo_url,
+    } as never)
     .select()
     .single();
   if (error) {
@@ -104,6 +112,7 @@ export async function createSupplier(input: {
     id: data.id,
     name: data.name,
     description: data.description ?? undefined,
+    country: (data as { country?: string | null }).country ?? undefined,
     logoUrl: data.logo_url ?? undefined,
     createdAt: new Date(data.created_at).getTime(),
     updatedAt: new Date(data.updated_at).getTime(),
@@ -113,11 +122,18 @@ export async function createSupplier(input: {
 
 export async function updateSupplier(
   id: string,
-  patch: { name?: string; description?: string; logoFile?: File | null; clearLogo?: boolean },
+  patch: {
+    name?: string;
+    description?: string;
+    country?: string;
+    logoFile?: File | null;
+    clearLogo?: boolean;
+  },
 ) {
   const payload: Record<string, unknown> = {};
   if (patch.name !== undefined) payload.name = patch.name;
   if (patch.description !== undefined) payload.description = patch.description || null;
+  if (patch.country !== undefined) payload.country = patch.country || null;
 
   if (patch.clearLogo) {
     payload.logo_url = null;
@@ -139,9 +155,13 @@ export async function deleteSupplier(id: string) {
   if (error) console.error("deleteSupplier", error);
 }
 
-export async function uploadSupplierFile(supplierId: string, file: File): Promise<SupplierFile | null> {
+export async function uploadSupplierFile(
+  supplierId: string,
+  file: File,
+  category: SupplierFileCategory = "document",
+): Promise<SupplierFile | null> {
   const safeName = file.name.replace(/[^\w.\-]+/g, "_");
-  const path = `${supplierId}/${Date.now()}_${safeName}`;
+  const path = `${supplierId}/${category}/${Date.now()}_${safeName}`;
   const { error: upErr } = await supabase.storage
     .from(FILES_BUCKET)
     .upload(path, file, { upsert: false, contentType: file.type || "application/pdf" });
@@ -156,7 +176,8 @@ export async function uploadSupplierFile(supplierId: string, file: File): Promis
       file_name: file.name,
       file_path: path,
       file_size: file.size,
-    })
+      category,
+    } as never)
     .select()
     .single();
   if (error) {
@@ -169,6 +190,7 @@ export async function uploadSupplierFile(supplierId: string, file: File): Promis
     fileName: data.file_name,
     filePath: data.file_path,
     fileSize: data.file_size as number | null,
+    category: ((data as { category?: string }).category as SupplierFileCategory) ?? category,
     createdAt: new Date(data.created_at).getTime(),
     publicUrl: publicUrl(FILES_BUCKET, data.file_path),
   };
