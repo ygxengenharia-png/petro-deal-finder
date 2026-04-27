@@ -155,6 +155,9 @@ function RankingPlay() {
                 </span>
               )}
             </TabButton>
+            <TabButton active={tab === "suppliers"} onClick={() => setTab("suppliers")}>
+              Fornecedores
+            </TabButton>
           </nav>
           <button
             onClick={() => {
