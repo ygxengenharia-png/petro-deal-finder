@@ -64,6 +64,7 @@ export type Database = {
       }
       supplier_files: {
         Row: {
+          category: string
           created_at: string
           file_name: string
           file_path: string
@@ -72,6 +73,7 @@ export type Database = {
           supplier_id: string
         }
         Insert: {
+          category?: string
           created_at?: string
           file_name: string
           file_path: string
@@ -80,6 +82,7 @@ export type Database = {
           supplier_id: string
         }
         Update: {
+          category?: string
           created_at?: string
           file_name?: string
           file_path?: string
@@ -99,6 +102,7 @@ export type Database = {
       }
       suppliers: {
         Row: {
+          country: string | null
           created_at: string
           description: string | null
           id: string
@@ -107,6 +111,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          country?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -115,6 +120,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          country?: string | null
           created_at?: string
           description?: string | null
           id?: string
