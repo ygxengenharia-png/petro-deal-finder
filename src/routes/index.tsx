@@ -337,6 +337,8 @@ function RankingPlay() {
         {tab === "history" && (
           <HistoryTab opportunities={history} onChange={refreshHistory} />
         )}
+
+        {tab === "suppliers" && <SuppliersTab />}
       </div>
 
       {modalDefaults && (
