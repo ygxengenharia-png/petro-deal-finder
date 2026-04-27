@@ -13,6 +13,7 @@ import { SaveOpportunityModal } from "@/components/SaveOpportunityModal";
 import { BulkSaveModal } from "@/components/BulkSaveModal";
 import { HistoryTab } from "@/components/HistoryTab";
 import { LoginScreen } from "@/components/LoginScreen";
+import { SuppliersTab } from "@/components/SuppliersTab";
 
 export const Route = createFileRoute("/")({
   component: RankingPlay,
