@@ -65,9 +65,12 @@ export async function loadOpportunities(): Promise<Opportunity[]> {
 export type NewOpportunity = Omit<Opportunity, "id" | "createdAt" | "updatedAt">;
 
 export async function saveOpportunity(o: NewOpportunity): Promise<Opportunity | null> {
+  const { data: u } = await supabase.auth.getUser();
+  if (!u.user) return null;
   const { data, error } = await supabase
     .from("opportunities")
     .insert({
+      user_id: u.user.id,
       title: o.title,
       item_number: o.itemNumber,
       opportunity_number: o.opportunityNumber,
