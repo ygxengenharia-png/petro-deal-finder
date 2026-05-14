@@ -1,20 +1,10 @@
-const KEY = "rankingplay:auth:v1";
-const USER = "YGX2026";
-const PASS = "250803";
+import { supabase } from "@/integrations/supabase/client";
 
-export function isAuthenticated(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(KEY) === "1";
+export async function getCurrentUserId(): Promise<string | null> {
+  const { data } = await supabase.auth.getUser();
+  return data.user?.id ?? null;
 }
 
-export function login(user: string, pass: string): boolean {
-  if (user.trim() === USER && pass === PASS) {
-    localStorage.setItem(KEY, "1");
-    return true;
-  }
-  return false;
-}
-
-export function logout() {
-  localStorage.removeItem(KEY);
+export async function logout() {
+  await supabase.auth.signOut();
 }
