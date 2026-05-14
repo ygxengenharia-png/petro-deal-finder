@@ -7,7 +7,9 @@ import {
   type ParseResult,
 } from "@/lib/petronect-parser";
 import { loadOpportunities, type Opportunity } from "@/lib/history-store";
-import { isAuthenticated, logout } from "@/lib/auth";
+import { logout } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 import { RankingItemCard } from "@/components/RankingItemCard";
 import { SaveOpportunityModal } from "@/components/SaveOpportunityModal";
 import { BulkSaveModal } from "@/components/BulkSaveModal";
@@ -32,7 +34,7 @@ export const Route = createFileRoute("/")({
 type Tab = "analyzer" | "history" | "suppliers";
 
 function RankingPlay() {
-  const [authed, setAuthed] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [tab, setTab] = useState<Tab>("analyzer");
   const [result, setResult] = useState<ParseResult | null>(null);
@@ -63,9 +65,17 @@ function RankingPlay() {
     });
 
   useEffect(() => {
-    setAuthed(isAuthenticated());
-    setAuthChecked(true);
-    void refreshHistory();
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      if (s) void refreshHistory();
+      else setHistory([]);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setAuthChecked(true);
+      if (data.session) void refreshHistory();
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   const refreshHistory = async () => {
@@ -98,7 +108,7 @@ function RankingPlay() {
   }, [result]);
 
   if (!authChecked) return null;
-  if (!authed) return <LoginScreen onSuccess={() => setAuthed(true)} />;
+  if (!session) return <LoginScreen />;
 
   const handleFile = async (file: File) => {
     setLoading(true);
@@ -159,16 +169,18 @@ function RankingPlay() {
               Fornecedores
             </TabButton>
           </nav>
-          <button
-            onClick={() => {
-              logout();
-              setAuthed(false);
-            }}
-            className="hidden sm:inline-flex text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-border"
-            title="Sair"
-          >
-            Sair
-          </button>
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="text-xs text-muted-foreground truncate max-w-[160px]" title={session.user.email ?? ""}>
+              {session.user.email}
+            </span>
+            <button
+              onClick={() => void logout()}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded border border-border"
+              title="Sair"
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </header>
 

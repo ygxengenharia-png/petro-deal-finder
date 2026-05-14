@@ -29,6 +29,7 @@ export type Database = {
           supplier: string
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           cost_value?: number
@@ -44,6 +45,7 @@ export type Database = {
           supplier?: string
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           cost_value?: number
@@ -59,6 +61,7 @@ export type Database = {
           supplier?: string
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -71,6 +74,7 @@ export type Database = {
           file_size: number | null
           id: string
           supplier_id: string
+          user_id: string | null
         }
         Insert: {
           category?: string
@@ -80,6 +84,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           supplier_id: string
+          user_id?: string | null
         }
         Update: {
           category?: string
@@ -89,6 +94,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           supplier_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -109,6 +115,7 @@ export type Database = {
           logo_url: string | null
           name: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           country?: string | null
@@ -118,6 +125,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           country?: string | null
@@ -127,6 +135,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -80,10 +80,14 @@ export async function createSupplier(input: {
   country?: string;
   logoFile?: File | null;
 }): Promise<Supplier | null> {
+  const { data: u } = await supabase.auth.getUser();
+  if (!u.user) return null;
+  const userId = u.user.id;
+
   let logo_url: string | null = null;
   if (input.logoFile) {
     const ext = input.logoFile.name.split(".").pop() || "png";
-    const path = `${crypto.randomUUID()}.${ext}`;
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
     const { error: upErr } = await supabase.storage
       .from(LOGOS_BUCKET)
       .upload(path, input.logoFile, { upsert: false, contentType: input.logoFile.type });
@@ -97,6 +101,7 @@ export async function createSupplier(input: {
   const { data, error } = await supabase
     .from("suppliers")
     .insert({
+      user_id: userId,
       name: input.name,
       description: input.description ?? null,
       country: input.country ?? null,
@@ -138,8 +143,10 @@ export async function updateSupplier(
   if (patch.clearLogo) {
     payload.logo_url = null;
   } else if (patch.logoFile) {
+    const { data: u } = await supabase.auth.getUser();
+    const userId = u.user?.id ?? "anon";
     const ext = patch.logoFile.name.split(".").pop() || "png";
-    const path = `${crypto.randomUUID()}.${ext}`;
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
     const { error: upErr } = await supabase.storage
       .from(LOGOS_BUCKET)
       .upload(path, patch.logoFile, { upsert: false, contentType: patch.logoFile.type });
@@ -160,8 +167,11 @@ export async function uploadSupplierFile(
   file: File,
   category: SupplierFileCategory = "document",
 ): Promise<SupplierFile | null> {
+  const { data: u } = await supabase.auth.getUser();
+  if (!u.user) return null;
+  const userId = u.user.id;
   const safeName = file.name.replace(/[^\w.\-]+/g, "_");
-  const path = `${supplierId}/${category}/${Date.now()}_${safeName}`;
+  const path = `${userId}/${supplierId}/${category}/${Date.now()}_${safeName}`;
   const { error: upErr } = await supabase.storage
     .from(FILES_BUCKET)
     .upload(path, file, { upsert: false, contentType: file.type || "application/pdf" });
@@ -172,6 +182,7 @@ export async function uploadSupplierFile(
   const { data, error } = await supabase
     .from("supplier_files")
     .insert({
+      user_id: userId,
       supplier_id: supplierId,
       file_name: file.name,
       file_path: path,
