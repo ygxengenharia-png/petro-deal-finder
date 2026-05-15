@@ -16,6 +16,9 @@ import { BulkSaveModal } from "@/components/BulkSaveModal";
 import { HistoryTab } from "@/components/HistoryTab";
 import { LoginScreen } from "@/components/LoginScreen";
 import { SuppliersTab } from "@/components/SuppliersTab";
+import { OrganizationSetup } from "@/components/OrganizationSetup";
+import { OrganizationTab } from "@/components/OrganizationTab";
+import { getCurrentOrgId } from "@/lib/org-store";
 
 export const Route = createFileRoute("/")({
   component: RankingPlay,
@@ -31,11 +34,13 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Tab = "analyzer" | "history" | "suppliers";
+type Tab = "analyzer" | "history" | "suppliers" | "org";
 
 function RankingPlay() {
   const [session, setSession] = useState<Session | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgChecked, setOrgChecked] = useState(false);
   const [tab, setTab] = useState<Tab>("analyzer");
   const [result, setResult] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -67,16 +72,28 @@ function RankingPlay() {
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
-      if (s) void refreshHistory();
-      else setHistory([]);
+      if (s) {
+        void refreshOrg();
+      } else {
+        setHistory([]);
+        setOrgId(null);
+        setOrgChecked(false);
+      }
     });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setAuthChecked(true);
-      if (data.session) void refreshHistory();
+      if (data.session) void refreshOrg();
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  const refreshOrg = async () => {
+    const id = await getCurrentOrgId();
+    setOrgId(id);
+    setOrgChecked(true);
+    if (id) void refreshHistory();
+  };
 
   const refreshHistory = async () => {
     const list = await loadOpportunities();
@@ -109,6 +126,8 @@ function RankingPlay() {
 
   if (!authChecked) return null;
   if (!session) return <LoginScreen />;
+  if (!orgChecked) return null;
+  if (!orgId) return <OrganizationSetup onReady={() => void refreshOrg()} />;
 
   const handleFile = async (file: File) => {
     setLoading(true);
@@ -167,6 +186,9 @@ function RankingPlay() {
             </TabButton>
             <TabButton active={tab === "suppliers"} onClick={() => setTab("suppliers")}>
               Fornecedores
+            </TabButton>
+            <TabButton active={tab === "org"} onClick={() => setTab("org")}>
+              Empresa
             </TabButton>
           </nav>
           <div className="hidden sm:flex items-center gap-2">
@@ -351,6 +373,8 @@ function RankingPlay() {
         )}
 
         {tab === "suppliers" && <SuppliersTab />}
+
+        {tab === "org" && <OrganizationTab orgId={orgId} currentUserId={session.user.id} />}
       </div>
 
       {modalDefaults && (

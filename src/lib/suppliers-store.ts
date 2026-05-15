@@ -98,10 +98,12 @@ export async function createSupplier(input: {
     }
   }
 
+  const { data: orgId } = await supabase.rpc("current_user_org_id");
   const { data, error } = await supabase
     .from("suppliers")
     .insert({
       user_id: userId,
+      organization_id: (orgId as string | null) ?? null,
       name: input.name,
       description: input.description ?? null,
       country: input.country ?? null,
@@ -179,10 +181,12 @@ export async function uploadSupplierFile(
     console.error("uploadSupplierFile", upErr);
     return null;
   }
+  const { data: orgId } = await supabase.rpc("current_user_org_id");
   const { data, error } = await supabase
     .from("supplier_files")
     .insert({
       user_id: userId,
+      organization_id: (orgId as string | null) ?? null,
       supplier_id: supplierId,
       file_name: file.name,
       file_path: path,
