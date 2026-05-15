@@ -34,11 +34,13 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Tab = "analyzer" | "history" | "suppliers";
+type Tab = "analyzer" | "history" | "suppliers" | "org";
 
 function RankingPlay() {
   const [session, setSession] = useState<Session | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgChecked, setOrgChecked] = useState(false);
   const [tab, setTab] = useState<Tab>("analyzer");
   const [result, setResult] = useState<ParseResult | null>(null);
   const [fileName, setFileName] = useState<string>("");
