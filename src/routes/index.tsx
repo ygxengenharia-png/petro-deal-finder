@@ -126,6 +126,8 @@ function RankingPlay() {
 
   if (!authChecked) return null;
   if (!session) return <LoginScreen />;
+  if (!orgChecked) return null;
+  if (!orgId) return <OrganizationSetup onReady={() => void refreshOrg()} />;
 
   const handleFile = async (file: File) => {
     setLoading(true);
