@@ -373,6 +373,8 @@ function RankingPlay() {
         )}
 
         {tab === "suppliers" && <SuppliersTab />}
+
+        {tab === "org" && <OrganizationTab orgId={orgId} currentUserId={session.user.id} />}
       </div>
 
       {modalDefaults && (
