@@ -12,7 +12,7 @@ import {
   type Organization,
   type OrgRole,
 } from "@/lib/org-store";
-import { supabase } from "@/integrations/supabase/client";
+
 
 export function OrganizationTab({ orgId, currentUserId }: { orgId: string; currentUserId: string }) {
   const [org, setOrg] = useState<Organization | null>(null);
