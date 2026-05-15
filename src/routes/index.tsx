@@ -16,6 +16,9 @@ import { BulkSaveModal } from "@/components/BulkSaveModal";
 import { HistoryTab } from "@/components/HistoryTab";
 import { LoginScreen } from "@/components/LoginScreen";
 import { SuppliersTab } from "@/components/SuppliersTab";
+import { OrganizationSetup } from "@/components/OrganizationSetup";
+import { OrganizationTab } from "@/components/OrganizationTab";
+import { getCurrentOrgId } from "@/lib/org-store";
 
 export const Route = createFileRoute("/")({
   component: RankingPlay,
