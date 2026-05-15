@@ -72,16 +72,28 @@ function RankingPlay() {
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
-      if (s) void refreshHistory();
-      else setHistory([]);
+      if (s) {
+        void refreshOrg();
+      } else {
+        setHistory([]);
+        setOrgId(null);
+        setOrgChecked(false);
+      }
     });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setAuthChecked(true);
-      if (data.session) void refreshHistory();
+      if (data.session) void refreshOrg();
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  const refreshOrg = async () => {
+    const id = await getCurrentOrgId();
+    setOrgId(id);
+    setOrgChecked(true);
+    if (id) void refreshHistory();
+  };
 
   const refreshHistory = async () => {
     const list = await loadOpportunities();
