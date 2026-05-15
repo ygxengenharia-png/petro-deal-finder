@@ -187,6 +187,9 @@ function RankingPlay() {
             <TabButton active={tab === "suppliers"} onClick={() => setTab("suppliers")}>
               Fornecedores
             </TabButton>
+            <TabButton active={tab === "org"} onClick={() => setTab("org")}>
+              Empresa
+            </TabButton>
           </nav>
           <div className="hidden sm:flex items-center gap-2">
             <span className="text-xs text-muted-foreground truncate max-w-[160px]" title={session.user.email ?? ""}>
