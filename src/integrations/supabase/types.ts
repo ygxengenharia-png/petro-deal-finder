@@ -14,47 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      document_folders: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          organization_id: string
-          parent_path: string
-          path: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          organization_id: string
-          parent_path?: string
-          path: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          organization_id?: string
-          parent_path?: string
-          path?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "document_folders_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       opportunities: {
         Row: {
           cost_value: number
@@ -213,59 +172,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      storage_documents: {
-        Row: {
-          created_at: string
-          description: string | null
-          display_name: string
-          file_name: string
-          file_path: string
-          file_size: number | null
-          folder_path: string
-          id: string
-          mime_type: string | null
-          organization_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          display_name: string
-          file_name: string
-          file_path: string
-          file_size?: number | null
-          folder_path?: string
-          id?: string
-          mime_type?: string | null
-          organization_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          display_name?: string
-          file_name?: string
-          file_path?: string
-          file_size?: number | null
-          folder_path?: string
-          id?: string
-          mime_type?: string | null
-          organization_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "storage_documents_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       supplier_files: {
         Row: {
