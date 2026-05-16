@@ -16,6 +16,7 @@ import { BulkSaveModal } from "@/components/BulkSaveModal";
 import { HistoryTab } from "@/components/HistoryTab";
 import { LoginScreen } from "@/components/LoginScreen";
 import { SuppliersTab } from "@/components/SuppliersTab";
+import { DocumentsTab } from "@/components/DocumentsTab";
 import { OrganizationSetup } from "@/components/OrganizationSetup";
 import { OrganizationTab } from "@/components/OrganizationTab";
 import { getCurrentOrgId } from "@/lib/org-store";
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-type Tab = "analyzer" | "history" | "suppliers" | "org";
+type Tab = "analyzer" | "history" | "suppliers" | "documents" | "org";
 
 function RankingPlay() {
   const [session, setSession] = useState<Session | null>(null);
@@ -172,7 +173,7 @@ function RankingPlay() {
               </p>
             </div>
           </div>
-          <nav className="flex gap-1 p-1 rounded-lg bg-muted">
+          <nav className="flex flex-wrap gap-1 p-1 rounded-lg bg-muted">
             <TabButton active={tab === "analyzer"} onClick={() => setTab("analyzer")}>
               Analisador
             </TabButton>
@@ -186,6 +187,9 @@ function RankingPlay() {
             </TabButton>
             <TabButton active={tab === "suppliers"} onClick={() => setTab("suppliers")}>
               Fornecedores
+            </TabButton>
+            <TabButton active={tab === "documents"} onClick={() => setTab("documents")}>
+              Documentos
             </TabButton>
             <TabButton active={tab === "org"} onClick={() => setTab("org")}>
               Empresa
@@ -373,6 +377,8 @@ function RankingPlay() {
         )}
 
         {tab === "suppliers" && <SuppliersTab />}
+
+        {tab === "documents" && <DocumentsTab />}
 
         {tab === "org" && <OrganizationTab orgId={orgId} currentUserId={session.user.id} />}
       </div>
